@@ -21,12 +21,22 @@ OdometryCam::~OdometryCam()
 
 void OdometryCam::run()
 {
+	while (m_currentError == sl::zed::SUCCESS)
+	{
+		// Default arguments, except don't compute the point cloud
+		m_currentError = m_camera->grab(sl::zed::SENSING_MODE::STANDARD, true, true, false);
+	}
 
 }
 
 void OdometryCam::printStatus()
 {
 	std::cout << "SDK version: " << sl::zed::Camera::getSDKVersion() << std::endl;
+	std::cout << "Image size: " << m_camera->getImageSize().width << "x" << m_camera->getImageSize().height << std::endl;
+	std::cout << "Frame rate: " << m_camera->getCurrentFPS() << std::endl;
+
+	if (m_fromFile)
+		std::cout << "Total number of frames: " << m_camera->getSVONumberOfFrames();
 }
 
 void OdometryCam::init(const cv::CommandLineParser& parser)
@@ -44,7 +54,10 @@ void OdometryCam::init(const cv::CommandLineParser& parser)
 	if (!isWorking())
 		return;
 
-	Eigen::Matrix4f ident;
+	m_camera->setDepthClampValue(20.); // 20 meters
+
+	// Position initialized at 0
+	Eigen::Matrix4f ident = Eigen::Matrix4f::Identity();
 	m_camera->enableTracking(ident);
 
 }
@@ -74,7 +87,7 @@ std::string OdometryCam::errorString() const
 		case sl::zed::ZED_WRONG_FIRMWARE:
 			return "Out of date firmware";
 		case sl::zed::NO_NEW_FRAME:
-			return "NO_NEW_FRAME";
+			return "Finished processing all frames";
 		case sl::zed::CUDA_ERROR_THROWN:
 			return "CUDA_ERROR_THROWN";
 		case sl::zed::ZED_NOT_INITIALIZED:
