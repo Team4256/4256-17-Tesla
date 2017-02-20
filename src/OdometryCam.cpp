@@ -2,6 +2,7 @@
 #include <thread>
 
 #include "OdometryCam.hpp"
+#include "PoseHandler.hpp"
 
 using namespace std::chrono_literals;
 
@@ -19,14 +20,20 @@ OdometryCam::~OdometryCam()
 	delete m_camera;
 }
 
-void OdometryCam::run()
+void OdometryCam::run(PoseHandler& poseHandler)
 {
+	sl::zed::MotionPoseData poseData;
+	unsigned long long currentTimeStamp;
+
+	m_currentError = m_camera->grab(sl::zed::SENSING_MODE::STANDARD, true, true, false);
 	while (m_currentError == sl::zed::SUCCESS)
 	{
 		// Default arguments, except don't compute the point cloud
+		m_camera->getPosition(poseData);
+		currentTimeStamp = m_fromFile ? poseData.timestamp : m_camera->getCurrentTimestamp();
+		poseHandler.setPosition(poseData, currentTimeStamp);
 		m_currentError = m_camera->grab(sl::zed::SENSING_MODE::STANDARD, true, true, false);
 	}
-
 }
 
 void OdometryCam::printStatus()

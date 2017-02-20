@@ -3,6 +3,8 @@
 #include <zed/Camera.hpp>
 #include <opencv2/core/utility.hpp>
 
+#include "PoseHandler.hpp"
+
 class cv::CommandLineParser;
 
 class OdometryCam
@@ -12,7 +14,7 @@ public:
 	~OdometryCam();
 
 	void printStatus();
-	void run();
+	void run(PoseHandler& pose);
 	void init(const cv::CommandLineParser& parser);
 
 	bool isWorking() const { return m_currentError == sl::zed::SUCCESS; };
