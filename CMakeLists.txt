@@ -53,9 +53,7 @@ FILE(GLOB_RECURSE SRC_FILES "${SRC_FOLDER}/*.cpp")
 ADD_EXECUTABLE(${execName} ${SRC_FILES})
 set_property(TARGET ${execName} PROPERTY OUTPUT_NAME "Odometry")
 
-IF(!WIN32)
 set (CMAKE_CXX_FLAGS "--std=c++11 -g -O3 ${CMAKE_CXX_FLAGS}")
-ENDIF(!WIN32)
 
 # Add the required libraries for linking:
 TARGET_LINK_LIBRARIES(${execName}
