@@ -4,12 +4,25 @@
 int main(int argc, char **argv)
 {
 	const cv::String keys =
+#ifdef _SSL_JETSON_
+	// This is the OpenCV 2.x case, for the TK1 board
+		"{h | help        | | print this message}"
+		"{p | printstatus | | print the status of the camera or svo file}"
+		"{i | input       | | SVO filename (ex : -i=test.svo  or --input=test.svo) }"
+		"{o | output      | | filename for pose data (ex : -o=data.txt  or --output=data.txt) }";
+#else
+	// This is the OpenCV 3.x case, which is what the Windows SDK uses
 		"{help h usage ? || print this message}"
 		"{printstatus p || print the status of the camera or svo file}"
 		"{input i || SVO filename (ex : -i=test.svo  or --input=test.svo) }"
 		"{output o || filename for pose data (ex : -o=data.txt  or --output=data.txt) }";
+#endif
 
+#ifdef _SSL_JETSON_
+	cv::CommandLineParser parser(argc, argv, keys.c_str());
+#else
 	cv::CommandLineParser parser(argc, argv, keys);
+#endif
 
 	if (parser.has("help")) {
 		parser.printMessage();

@@ -1,7 +1,12 @@
 #pragma once
 
 #include <zed/Camera.hpp>
+
+#include <opencv2/core/core.hpp>
+#ifndef _SL_JETSON
+// OpenCV 3
 #include <opencv2/core/utility.hpp>
+#endif
 
 #include "PoseHandler.hpp"
 
