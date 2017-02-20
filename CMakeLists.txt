@@ -54,7 +54,7 @@ ADD_EXECUTABLE(${execName} ${SRC_FILES})
 set_property(TARGET ${execName} PROPERTY OUTPUT_NAME "Odometry")
 
 IF(!WIN32)
-add_definitions(-std=c++11 -g -O3)
+set (CMAKE_CXX_FLAGS "--std=c++11 -g -O3 ${CMAKE_CXX_FLAGS}")
 ENDIF(!WIN32)
 
 # Add the required libraries for linking:
