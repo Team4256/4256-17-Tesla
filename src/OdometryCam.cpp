@@ -1,10 +1,9 @@
+#include <chrono>
 #include <string>
 #include <thread>
 
 #include "OdometryCam.hpp"
 #include "PoseHandler.hpp"
-
-using namespace std::chrono_literals;
 
 OdometryCam::OdometryCam(const std::string& inputFileName)
 	: m_fromFile(!inputFileName.empty())
@@ -20,11 +19,13 @@ OdometryCam::~OdometryCam()
 	delete m_camera;
 }
 
-void OdometryCam::run(PoseHandler& poseHandler)
+void OdometryCam::run(PoseHandler& poseHandler, const std::chrono::milliseconds& queryInterval)
 {
 	sl::zed::MotionPoseData poseData;
 	unsigned long long currentTimeStamp;
+	auto startTime = std::chrono::high_resolution_clock::now();
 
+	std::cout << "Start run\n";
 	m_currentError = m_camera->grab(sl::zed::SENSING_MODE::STANDARD, true, true, false);
 	while (m_currentError == sl::zed::SUCCESS)
 	{
@@ -32,6 +33,12 @@ void OdometryCam::run(PoseHandler& poseHandler)
 		m_camera->getPosition(poseData);
 		currentTimeStamp = m_fromFile ? poseData.timestamp : m_camera->getCurrentTimestamp();
 		poseHandler.setPosition(poseData, currentTimeStamp);
+
+		auto elapsedTime = std::chrono::high_resolution_clock::now() - startTime;
+		if (elapsedTime < queryInterval)
+			std::this_thread::sleep_for(queryInterval - elapsedTime);
+		startTime = std::chrono::high_resolution_clock::now();
+		
 		m_currentError = m_camera->grab(sl::zed::SENSING_MODE::STANDARD, true, true, false);
 	}
 }
@@ -48,25 +55,26 @@ void OdometryCam::printStatus()
 
 void OdometryCam::init(const cv::CommandLineParser& parser)
 {
-	while (m_camera->getSelfCalibrationStatus() == sl::zed::ZED_SELF_CALIBRATION_STATUS::SELF_CALIBRATION_RUNNING)
-	{
-		std::this_thread::sleep_for(10ms);
-	}
-
 	sl::zed::InitParams params(sl::zed::PERFORMANCE, sl::zed::METER);
 	params.minimumDistance = 0.5; // minimum distance of 0.5m.  Smaller values requires more computation
 
+	std::cout << "Initializing camera...\n";
 	m_currentError = m_camera->init(params);
 
 	if (!isWorking())
 		return;
+
+	std::cout << "Calibrating...\n";
+	while (m_camera->getSelfCalibrationStatus() == sl::zed::ZED_SELF_CALIBRATION_STATUS::SELF_CALIBRATION_RUNNING)
+	{
+		std::this_thread::sleep_for(std::chrono::milliseconds(10));
+	}
 
 	m_camera->setDepthClampValue(20.); // 20 meters
 
 	// Position initialized at 0
 	Eigen::Matrix4f ident = Eigen::Matrix4f::Identity();
 	m_camera->enableTracking(ident);
-
 }
 
 std::string OdometryCam::errorString() const

@@ -1,16 +1,16 @@
 #pragma once
 
+#include <chrono>
 #include <zed/Camera.hpp>
 
 #include <opencv2/core/core.hpp>
+
 #ifndef _SL_JETSON_
 // OpenCV 3
 #include <opencv2/core/utility.hpp>
 #endif
 
 #include "PoseHandler.hpp"
-
-class cv::CommandLineParser;
 
 class OdometryCam
 {
@@ -19,7 +19,7 @@ public:
 	~OdometryCam();
 
 	void printStatus();
-	void run(PoseHandler& pose);
+	void run(PoseHandler& pose, const std::chrono::milliseconds& queryInterval);
 	void init(const cv::CommandLineParser& parser);
 
 	bool isWorking() const { return m_currentError == sl::zed::SUCCESS; };
