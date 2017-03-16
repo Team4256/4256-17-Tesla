@@ -1,4 +1,4 @@
-# 4256-17-Odometry
+# 4256-17-Tesla
 
 This is the visual odometry code for the Cyborg Cats, working with the ZED camera SDK.
 
