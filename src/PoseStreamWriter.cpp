@@ -1,4 +1,5 @@
 #include "PoseStreamWriter.hpp"
+#include "math.h"
 
 void PoseStreamWriter::setPosition(const sl::zed::MotionPoseData& poseData, unsigned long long currentTimeStamp)
 {
@@ -17,7 +18,7 @@ void PoseStreamWriter::setPosition(const sl::zed::MotionPoseData& poseData, unsi
 			return;
 
 		case sl::zed::TRACKING_INIT:
-			m_outputStream << "Initializing relocation\n";
+			m_outputStream << "Initializing location\n";
 			return;
 
 		default:
@@ -25,9 +26,9 @@ void PoseStreamWriter::setPosition(const sl::zed::MotionPoseData& poseData, unsi
 			return;
 	}
 
-	// x tab y 
-	m_outputStream << poseData.translation[0] << "\t" << poseData.translation[1];
-	m_outputStream << "\t" << poseData.pose_confidence;
+	// x tab y tab tab confidence
+	m_outputStream << round(poseData.translation[0]*100)/100 << "\t" << round(poseData.translation[2]*100)/100;
+	m_outputStream << "\t\t" << poseData.pose_confidence;
 
 	m_outputStream << std::endl;
 }

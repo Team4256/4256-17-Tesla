@@ -9,7 +9,7 @@ OdometryCam::OdometryCam(const std::string& inputFileName)
 	: m_fromFile(!inputFileName.empty())
 {
 	if (inputFileName.empty())
-		m_camera = new sl::zed::Camera(sl::zed::ZEDResolution_mode::HD720);
+		m_camera = new sl::zed::Camera(sl::zed::ZEDResolution_mode::HD720, 0.0);
 	else
 		m_camera = new sl::zed::Camera(inputFileName);
 }
@@ -26,11 +26,11 @@ void OdometryCam::run(PoseHandler& poseHandler, const std::chrono::milliseconds&
 	auto startTime = std::chrono::high_resolution_clock::now();
 
 	std::cout << "Start run\n";
-	m_currentError = m_camera->grab(sl::zed::SENSING_MODE::STANDARD, true, true, false);
+	m_currentError = m_camera->grab(sl::zed::SENSING_MODE::FILL, true, true, false);//FILL vs STANDARD
 	while (m_currentError == sl::zed::SUCCESS)
 	{
 		// Default arguments, except don't compute the point cloud
-		m_camera->getPosition(poseData);
+		m_camera->getPosition(poseData, sl::zed::MAT_TRACKING_TYPE::PATH);
 		currentTimeStamp = m_fromFile ? poseData.timestamp : m_camera->getCurrentTimestamp();
 		poseHandler.setPosition(poseData, currentTimeStamp);
 
@@ -39,7 +39,7 @@ void OdometryCam::run(PoseHandler& poseHandler, const std::chrono::milliseconds&
 			std::this_thread::sleep_for(queryInterval - elapsedTime);
 		startTime = std::chrono::high_resolution_clock::now();
 		
-		m_currentError = m_camera->grab(sl::zed::SENSING_MODE::STANDARD, true, true, false);
+		m_currentError = m_camera->grab(sl::zed::SENSING_MODE::FILL, true, true, false);//FILL vs STANDARD
 	}
 }
 
@@ -70,7 +70,7 @@ void OdometryCam::init(const cv::CommandLineParser& parser)
 		std::this_thread::sleep_for(std::chrono::milliseconds(10));
 	}
 
-	m_camera->setDepthClampValue(20.); // 20 meters
+	m_camera->setDepthClampValue(10.); // 10 meters
 
 	// Position initialized at 0
 	Eigen::Matrix4f ident = Eigen::Matrix4f::Identity();
